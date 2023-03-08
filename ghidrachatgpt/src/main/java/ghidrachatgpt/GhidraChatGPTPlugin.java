@@ -310,7 +310,8 @@ public class GhidraChatGPTPlugin extends ProgramPlugin {
 
 		try {
 			openAIService.createChatCompletion(chatCompletionRequest).getChoices().forEach(resp -> {
-				response.append(resp);
+				response.append(resp.getMessage().getContent());
+				log(String.format("Finish Reason : %s",resp.getFinishReason()));
 			});			
 		} catch (Exception e) {
 			error(String.format("Asking ChatGPT failed with the error %s", e));

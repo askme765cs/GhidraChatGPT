@@ -40,8 +40,16 @@ import ghidra.program.model.listing.Variable;
 import ghidra.program.model.symbol.SourceType;
 
 import com.theokanning.openai.OpenAiService;
-import com.theokanning.openai.completion.CompletionRequest;
 import com.theokanning.openai.completion.CompletionChoice;
+import com.theokanning.openai.completion.CompletionRequest;
+import com.theokanning.openai.completion.chat.ChatCompletionChoice;
+import com.theokanning.openai.completion.chat.ChatCompletionRequest;
+import com.theokanning.openai.completion.chat.ChatMessage;
+import com.theokanning.openai.completion.chat.ChatMessageRole;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import org.json.JSONObject;
 
@@ -284,20 +292,25 @@ public class GhidraChatGPTPlugin extends ProgramPlugin {
 		}
 
 		log(String.format("Asking ChatGPT (%s max tokens)  ...", OPENAI_MAX_TOKENS));
-		CompletionRequest completionRequest = CompletionRequest.builder()
-        .prompt(prompt)
-        .model("text-davinci-003")
-		.maxTokens(OPENAI_MAX_TOKENS)
-		.temperature(0.0)
-		.topP(1.0)
-		.frequencyPenalty(0.0)
-		.presencePenalty(0.0)
-		.echo(false)
-        .build();
+		final List<ChatMessage> messages = new ArrayList<>();  // java version agnostic
+        final ChatMessage systemMessage = new ChatMessage(ChatMessageRole.SYSTEM.value(), prompt);
+        messages.add(systemMessage);
+		ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest
+                .builder()
+                .model("gpt-3.5-turbo")
+                .messages(messages)
+                .n(1)
+                .maxTokens(OPENAI_MAX_TOKENS)
+				.temperature(0.0)
+				.topP(1.0)
+				.frequencyPenalty(0.0)
+				.presencePenalty(0.0)
+                .logitBias(new HashMap<>())
+                .build();
 
 		try {
-			openAIService.createCompletion(completionRequest).getChoices().forEach(resp -> {
-				response.append(resp.getText());
+			openAIService.createChatCompletion(chatCompletionRequest).getChoices().forEach(resp -> {
+				response.append(resp);
 			});			
 		} catch (Exception e) {
 			error(String.format("Asking ChatGPT failed with the error %s", e));

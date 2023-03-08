@@ -20,6 +20,8 @@ import docking.Tool;
 
 import java.lang.Integer;
 
+import ghidra.framework.preferences.Preferences;
+
 import ghidra.app.ExamplesPluginPackage;
 import ghidra.app.plugin.PluginCategoryNames;
 import ghidra.app.plugin.ProgramPlugin;
@@ -99,8 +101,8 @@ public class GhidraChatGPTPlugin extends ProgramPlugin {
 		super.init();
 		cs = tool.getService(ConsoleService.class);
 		cvs = tool.getService(CodeViewerService.class);
-		apiToken = System.getenv("OPENAI_TOKEN");
-		String maxTokens = System.getenv("OPENAI_MAX_TOKENS");
+		apiToken = Preferences.getProperty("OPENAI_TOKEN");
+		String maxTokens = Preferences.getProperty("OPENAI_MAX_TOKENS");
 		if (maxTokens != null)
 			OPENAI_MAX_TOKENS = Integer.parseInt(maxTokens);
 	}
@@ -110,6 +112,8 @@ public class GhidraChatGPTPlugin extends ProgramPlugin {
 			return false;
 
 		apiToken = token;
+		Preferences.setProperty("OPENAI_TOKEN",token);
+		Preferences.store();
 		return true;
 	}
 
@@ -123,6 +127,8 @@ public class GhidraChatGPTPlugin extends ProgramPlugin {
 
 	public void setMaxTokens(int maxTokens) {
 		OPENAI_MAX_TOKENS = maxTokens;
+		Preferences.setProperty("OPENAI_MAX_TOKENS",String.valueOf(maxTokens));
+		Preferences.store();
 	}
 
 	public void identifyFunction() {
